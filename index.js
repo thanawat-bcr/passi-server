@@ -84,7 +84,7 @@ app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
     };
     try {
         const result = await kairosAxios.post('https://api.kairos.com/enroll', params)
-        return res.json({'status': true, 'face_id': result.data.face_id});
+        return res.json({'status': 'success', 'face_id': result.data.face_id});
     } catch(err) {
         console.log(err);
         return res.json({'status' : false});
