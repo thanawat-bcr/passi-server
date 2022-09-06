@@ -11,6 +11,24 @@ kairosAxios.defaults.headers.common['app_id'] = '68b0c0ea'
 kairosAxios.defaults.headers.common['app_key'] = '3e1615c6719a7b955cb417ba8045f4e1'
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
+var mysql      = require('mysql');
+var connection = mysql.createConnection({
+    host     : 'passi.sit.kmutt.ac.th',
+    user     : 'tutor',
+    password : 'Tutor1234*',
+    database : 'passi'
+});
+
+connection.connect(function(err) {
+    if (err) {
+    console.error('error connecting: ' + err.stack);
+    return;
+}
+
+    console.log('connected as id ' + connection.threadId);
+});
+
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -30,6 +48,12 @@ app.get('/cat', async (req, res) => {
     catch (err) {
         console.log(err)
     }
+})
+app.get('/mysql', async (req, res) => {
+    // connection.query('SELECT * FROM passport', function (error, results, fields) {
+    //     console.log('The results is: ', results);
+    //     return res.json({ 'status': true })
+    // });
 })
 
 // GET ALL GALLERIES ✅
@@ -113,4 +137,5 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
 
 
 app.listen(3128);
+connection.end();
 console.log('Listening on localhost:3128');
