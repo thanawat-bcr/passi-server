@@ -51,13 +51,26 @@ app.get('/cat', async (req, res) => {
     }
 })
 app.get('/mysql', async (req, res) => {
-    conn.query("SELECT passport_no FROM passport", function (err, data, fields) {
+    conn.query("SELECT passport_no FROM passport;", function (err, data, fields) {
         if(err) return res.json({'status' : err});
         res.status(200).json({
             status: "success",
             length: data?.length,
             data: data,
         });
+    });
+})
+
+// REGISTER USER
+app.post('/user/register', (req, res) => {
+    const { user_id, passport_no } = req.body;
+    // console.log(user_id, passport_no);
+    // res.status(200).json({ status: "success" });
+
+    conn.query(`INSERT INTO user (id, passport_id) VALUES ('${user_id}', '${passport_no}');`, function (err, data, fields) {
+        if(err) return res.json({'status' : err});
+        console.log('USER INSERTED 😀');
+        res.status(200).json({status: "success"});
     });
 })
 
