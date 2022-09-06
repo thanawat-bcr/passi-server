@@ -11,6 +11,25 @@ kairosAxios.defaults.headers.common['app_id'] = '68b0c0ea'
 kairosAxios.defaults.headers.common['app_key'] = '3e1615c6719a7b955cb417ba8045f4e1'
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
+// var mysql      = require('mysql');
+// var connection = mysql.createConnection({
+//     host     : 'passi.sit.kmutt.ac.th',
+//     user     : 'tutor',
+//     password : 'Tutor1234*',
+//     database : 'passi'
+// });
+
+// connection.connect(function(err) {
+//     if (err) {
+//     console.error('error connecting: ' + err.stack);
+//     return;
+// }
+
+//     console.log('connected as id ' + connection.threadId);
+// });
+const conn = require("./services/db");
+
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -30,6 +49,29 @@ app.get('/cat', async (req, res) => {
     catch (err) {
         console.log(err)
     }
+})
+app.get('/mysql', async (req, res) => {
+    conn.query("SELECT passport_no FROM passport;", function (err, data, fields) {
+        if(err) return res.json({'status' : err});
+        res.status(200).json({
+            status: "success",
+            length: data?.length,
+            data: data,
+        });
+    });
+})
+
+// REGISTER USER
+app.post('/user/register', (req, res) => {
+    const { user_id, passport_no } = req.body;
+    // console.log(user_id, passport_no);
+    // res.status(200).json({ status: "success" });
+
+    conn.query(`INSERT INTO user (id, passport_id) VALUES ('${user_id}', '${passport_no}');`, function (err, data, fields) {
+        if(err) return res.json({'status' : err});
+        console.log('USER INSERTED 😀');
+        res.status(200).json({status: "success"});
+    });
 })
 
 // GET ALL GALLERIES ✅
