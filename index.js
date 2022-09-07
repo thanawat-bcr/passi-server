@@ -10,8 +10,8 @@ require('dotenv').config()
 const axios = require('axios');
 const kairosAxios = require('axios');
 
-kairosAxios.defaults.headers.common['app_id'] = '68b0c0ea'
-kairosAxios.defaults.headers.common['app_key'] = '3e1615c6719a7b955cb417ba8045f4e1'
+kairosAxios.defaults.headers.common['app_id'] = process.env.KAIROS_APP_ID
+kairosAxios.defaults.headers.common['app_key'] = process.env.KAIROS_APP_KEY
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
 const conn = require("./services/db");
@@ -46,6 +46,11 @@ app.get('/mysql', async (req, res) => {
             data: data,
         });
     });
+})
+app.post('/image', multipartMiddleware, (req, res) => {
+    console.log('Image Uploaded 🙂');
+    // let base64image = fs.readFileSync(req.files.image.path, 'base64');
+    console.log(req.files.image)
 })
 
 // REGISTER USER ✅
