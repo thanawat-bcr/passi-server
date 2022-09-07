@@ -78,7 +78,7 @@ app.post('/user/register', (req, res) => {
 app.post('/user/login', (req, res) => {
     const { user_id } = req.body;
 
-    conn.query(`SELECT face_verified, pin FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
+    conn.query(`SELECT face_verified, pin, passport_id FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
         if(err) return res.status(400).json({'status' : err});
         if(data.length === 0) return res.status(404).json({ error: 'NO_USER'});
         if(data[0].face_verified === 0) return res.status(401).json({ error: 'NO_FACE_VERIFIED'});
@@ -86,7 +86,20 @@ app.post('/user/login', (req, res) => {
         console.log('USER LOGIN 😀');
         return res.status(200).json({
             status: "success",
-            data: data[0].passport_no,
+            passport: data[0].passport_id,
+        });
+    });
+})
+// USER PASSPORT ✅
+app.post('/user/passport', (req, res) => {
+    const { user_id } = req.body;
+
+    conn.query(`SELECT passport_id FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
+        if(err) return res.status(400).json({'status' : err});
+        console.log('USER PASSPORT 😀');
+        return res.status(200).json({
+            status: "success",
+            passport: data[0].passport_id,
         });
     });
 })
@@ -162,11 +175,22 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
     try {
         const result = await kairosAxios.post('https://api.kairos.com/verify', params)
         // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
-        console.log(result.data.images[0].transaction.confidence)
-        return res.json({'status': result.data.images[0].transaction.confidence > 0.6});
+        const status = result.data.images[0].transaction.confidence > 0.6
+        if(status) {
+            conn.query(`UPDATE user SET face_verified = ${status} WHERE passport_id = '${req.body.subject_id}';`, function (err, data, fields) {
+                if(err) return res.status(400).json({'status' : err});
+                console.log('FACE VERIFIED 😀');
+                return res.status(200).json({
+                    status: "success"
+                });
+            });
+        } else {
+            console.log('FACE VERIFIED FAILED 🥲');
+            return res.status(400).json({ status: "FAILED" })
+        }
     } catch(err) {
         console.log(err);
-        return res.json({'status' : false});
+        return res.status(400).json({ status: err })
     }
 });
 
