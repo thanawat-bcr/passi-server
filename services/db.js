@@ -1,9 +1,11 @@
 const mysql = require('mysql');
+require('dotenv').config()
+
 const conn = mysql.createConnection({
-  host     : 'passi.sit.kmutt.ac.th',
-  user     : 'tutor',
-  password : 'Tutor1234*',
-  database : 'passi'
+  host     : process.env.DATABASE_HOST,
+  user     : process.env.DATABASE_USER,
+  password : process.env.DATABASE_PASSWORD,
+  database : process.env.DATABASE_DB
 });
 
 conn.connect();
