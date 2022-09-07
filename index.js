@@ -26,23 +26,29 @@ app.use(bodyParser.json());
 const multipartMiddleware = multipart();
 
 // TEST API
-app.get('/test', (req, res) => { console.log("TEST GET!"); return res.send('HELLO TEST'); })
-app.post('/test', (req, res) => { console.log("TEST POST!"); return res.send('HELLO TEST'); })
+app.get('/test', (req, res) => {
+    console.log("TEST API: GET!");
+    return res.status(200).json({ status: 'success' })
+})
+app.post('/test', (req, res) => {
+    console.log("TEST API: POST!");
+    return res.status(200).json({ status: 'success' })
+})
 app.get('/cat', async (req, res) => {
     console.log("TEST API: CAT 😾");
     try {
         const response = await axios.get("https://catfact.ninja/fact")
-        res.json(response.data)
+        return res.status(200).json({ status: 'success', data: response.data })
     }
     catch (err) {
-        console.log(err)
+        return res.status(400).json({ status: err })
     }
 })
 app.get('/mysql', async (req, res) => {
     console.log("TEST API: MYSQL 🦭");
     conn.query("SELECT passport_no FROM passport;", function (err, data, fields) {
         if(err) return res.json({'status' : err});
-        res.status(200).json({
+        return res.status(200).json({
             status: "success",
             length: data?.length,
             data: data,
@@ -50,9 +56,10 @@ app.get('/mysql', async (req, res) => {
     });
 })
 app.post('/image', multipartMiddleware, (req, res) => {
-    console.log('Image Uploaded 🙂');
+    console.log('TEST API: IMAGE 🙂');
     // let base64image = fs.readFileSync(req.files.image.path, 'base64');
     console.log(req.files.image)
+    return res.status(200).json({ status: 'success' })
 })
 
 // REGISTER USER ✅
@@ -62,9 +69,25 @@ app.post('/user/register', (req, res) => {
     // res.status(200).json({ status: "success" });
 
     conn.query(`INSERT INTO user (id, passport_id) VALUES ('${user_id}', '${passport_no}');`, function (err, data, fields) {
-        if(err) return res.json({'status' : err});
+        if(err) return res.status(400).json({'status' : err});
         console.log('USER INSERTED 😀');
-        res.status(200).json({status: "success"});
+        return res.status(201).json({status: "success"});
+    });
+})
+// LOGIN USER ✅
+app.post('/user/login', (req, res) => {
+    const { user_id } = req.body;
+
+    conn.query(`SELECT face_verified, pin FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
+        if(err) return res.status(400).json({'status' : err});
+        if(data.length === 0) return res.status(404).json({ error: 'NO_USER'});
+        if(data[0].face_verified === 0) return res.status(401).json({ error: 'NO_FACE_VERIFIED'});
+        if(!data[0].pin) return res.status(401).json({ error: 'NO_PIN_CREATED'});
+        console.log('USER LOGIN 😀');
+        return res.status(200).json({
+            status: "success",
+            data: data[0].passport_no,
+        });
     });
 })
 
