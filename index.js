@@ -4,6 +4,9 @@ const express = require('express');
 const JSONStream = require('JSONStream');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
+
+require('dotenv').config() 
+
 const axios = require('axios');
 const kairosAxios = require('axios');
 
@@ -45,7 +48,7 @@ app.get('/mysql', async (req, res) => {
     });
 })
 
-// REGISTER USER
+// REGISTER USER ✅
 app.post('/user/register', (req, res) => {
     const { user_id, passport_no } = req.body;
     // console.log(user_id, passport_no);
