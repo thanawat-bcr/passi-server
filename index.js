@@ -11,22 +11,6 @@ kairosAxios.defaults.headers.common['app_id'] = '68b0c0ea'
 kairosAxios.defaults.headers.common['app_key'] = '3e1615c6719a7b955cb417ba8045f4e1'
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
-// var mysql      = require('mysql');
-// var connection = mysql.createConnection({
-//     host     : 'passi.sit.kmutt.ac.th',
-//     user     : 'tutor',
-//     password : 'Tutor1234*',
-//     database : 'passi'
-// });
-
-// connection.connect(function(err) {
-//     if (err) {
-//     console.error('error connecting: ' + err.stack);
-//     return;
-// }
-
-//     console.log('connected as id ' + connection.threadId);
-// });
 const conn = require("./services/db");
 
 
