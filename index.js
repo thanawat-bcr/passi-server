@@ -29,6 +29,7 @@ const multipartMiddleware = multipart();
 app.get('/test', (req, res) => { console.log("TEST GET!"); return res.send('HELLO TEST'); })
 app.post('/test', (req, res) => { console.log("TEST POST!"); return res.send('HELLO TEST'); })
 app.get('/cat', async (req, res) => {
+    console.log("TEST API: CAT 😾");
     try {
         const response = await axios.get("https://catfact.ninja/fact")
         res.json(response.data)
@@ -38,6 +39,7 @@ app.get('/cat', async (req, res) => {
     }
 })
 app.get('/mysql', async (req, res) => {
+    console.log("TEST API: MYSQL 🦭");
     conn.query("SELECT passport_no FROM passport;", function (err, data, fields) {
         if(err) return res.json({'status' : err});
         res.status(200).json({
