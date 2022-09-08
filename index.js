@@ -89,135 +89,104 @@ app.post('/image/file', multipartMiddleware, async (req, res) => {
         return res.status(400).json({ status: err })
     }
 })
-app.post('/image/base64', async (req, res) => {
-    console.log('TEST API: IMAGE BASE 64 🙂');
-    
-    var params = {
-        image: req.body.image,
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: 'AB1325944',
-    };
-    try {
-        const result = await kairosAxios.post('https://api.kairos.com/verify', params)
-        // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
-        const status = result.data.images[0].transaction.confidence > 0.6
-        if(status) {
-            console.log('FACE VERIFIED SUCCESS 😉');
-            return res.status(200).json({status: "SUCCESS"});
-        } else {
-            console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(200).json({ status: "FAILED" })
-        }
-    } catch(err) {
-        console.log(err);
-        return res.status(400).json({ status: err })
-    }
-})
-app.post('/bcrypt/compare', (req, res) => {
-    const { pin, hash } = req.body
-    console.log('TEST API: BCRYPT 🫣', pin, hash);
-    bcrypt.compare(pin, hash).then((response) => {
-        // res === true
-        return res.status(200).json({ status: response })
-    }).catch((err) => {
-        console.log(err)
-        throw res.status(200).json({ status: 'error' })
-    })
-})
-app.post('/bcrypt/hash', (req, res) => {
-    const { pin } = req.body
-    console.log('TEST API: BCRYPT 🫣', pin);
-    var salt = bcrypt.genSaltSync(10);
-    var hash = bcrypt.hashSync(pin, salt);
-    return res.status(200).json({ status: 'success', pin, hash, salt })
-})
 
 // REGISTER USER ✅
 app.post('/user/register', (req, res) => {
-    const { user_id, passport_no } = req.body;
-    // console.log(user_id, passport_no);
-    // res.status(200).json({ status: "success" });
+    console.log('[POST] /user/register');
+    const { email, password, pin, passport } = req.body;
 
-    conn.query(`INSERT INTO user (id, passport) VALUES ('${user_id}', '${passport_no}');`, function (err, data, fields) {
-        if(err) return res.status(400).json({'status' : err});
-        console.log('USER INSERTED 😀');
-        return res.status(201).json({status: "success"});
+    var saltPassword = bcrypt.genSaltSync(10);
+    var hashedPassword = bcrypt.hashSync(password, saltPassword);
+    var saltPin = bcrypt.genSaltSync(10);
+    var hashedPin = bcrypt.hashSync(pin, saltPin);
+
+    conn.query(`INSERT INTO user (email, password, pin, passport) VALUES ('${email}', '${hashedPassword}', '${hashedPin}', '${passport}');`, function (err, data, fields) {
+        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
+        console.log('USER_CREATED 😀');
+        return res.status(201).json({status: "SUCCESS"});
     });
 })
 // LOGIN USER ✅
 app.post('/user/login', (req, res) => {
-    const { user_id } = req.body;
+    console.log('[POST] /user/login');
+    const { email, password } = req.body;
 
-    conn.query(`SELECT face_verified, pin, passport FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
-        if(err) return res.status(400).json({'status' : err});
-        if(data.length === 0) return res.status(404).json({ error: 'NO_USER'});
-        if(data[0].face_verified === 0) return res.status(401).json({ error: 'NO_FACE_VERIFIED'});
-        if(!data[0].pin) return res.status(401).json({ error: 'NO_PIN_CREATED'});
-        console.log('USER LOGIN 😀');
-        return res.status(200).json({
-            status: "success",
-            passport: data[0].passport,
-        });
+    conn.query(`SELECT password, passport FROM user WHERE email = '${email}';`, function (err, data, fields) {
+        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
+        if(data.length === 0) {
+            console.log('USER_NOT_FOUND 😢');
+            return res.status(400).json({ status: 'USER_NOT_FOUND' })
+        }
+        bcrypt.compare(password, data[0].password).then((result) => {
+            if (result) {
+                console.log('USER_LOGIN 😀');
+                return res.status(200).json({ status: 'SUCCESS', passport: data[0].passport })
+            } else {
+                console.log('WRONG_PASSWORD 😢');
+                return res.status(401).json({ status: 'WRONG_PASSWORD' })
+            }
+        }).catch((err) => {
+            console.log('SOMETHING_WENT_WRONG 😢', err);
+            return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+        })
     });
 })
-// USER PASSPORT ✅
-app.post('/user/passport', (req, res) => {
-    const { user_id } = req.body;
-
-    conn.query(`SELECT passport FROM user WHERE id = '${user_id}';`, function (err, data, fields) {
-        if(err) return res.status(400).json({'status' : err});
-        console.log('USER PASSPORT 😀');
+// CHECK USER EMAIL ✅
+app.post('/user/email', (req, res) => {
+    console.log('[POST] /user/email');
+    const { email } = req.body;
+    conn.query(`SELECT email FROM user WHERE email = '${email}';`, function (err, data, fields) {
+        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
+        if(data.length > 0) {
+            console.log('EMAIL_ALREADY_EXISTS 😢');
+            return res.status(400).json({ status: 'EMAIL_ALREADY_EXISTS' })
+        }
+        console.log('EMAIL_AVAILABLE 😀');
+        return res.status(200).json({ status: 'SUCCESS' })
+    });
+})
+// USER LIST ✅
+app.get('/user', (req, res) => {
+    console.log('[GET] /user/list');
+    conn.query(`SELECT email, passport FROM user;`, function (err, data, fields) {
+        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
+        console.log('SUCCESS 😀');
         return res.status(200).json({
-            status: "success",
-            passport: data[0].passport,
+            status: 'SUCCESS',
+            user: data,
         });
     });
 })
 
 // GET ALL GALLERIES ✅
 app.get('/kairos/galleries', async (req, res) => {
-    console.log('GET ALL GALLERIES 🎒');
+    console.log('[GET] /kairos/galleries');
     try {
         const result = await kairosAxios.post('https://api.kairos.com/gallery/list_all')
-        return res.json(result.data);
+        console.log('SUCCESS 😀');
+        return res.status(200).json({ status: 'SUCCESS', galleries: result.data.gallery_ids })
     } catch(err) {
-        console.log(err);
-        return res.json({'status' : false});
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
 });
 
 // GET ALL SUBJECTS IN GALLERY ✅
 app.get('/kairos/gallery', async (req, res) => {
-    console.log(`GET ALL SUBJECTS IN ${process.env.KAIROS_GALLERY_NAME} GALLERY 👨`);
+    console.log('[GET] /kairos/gallery');
     try {
         const result = await kairosAxios.post('https://api.kairos.com/gallery/view', {
             gallery_name: process.env.KAIROS_GALLERY_NAME
         })
-        return res.json(result.data);
+        console.log('SUCCESS 😀');
+        return res.status(200).json({ status: 'SUCCESS', galleries: result.data.subject_ids })
     } catch(err) {
-        console.log(err);
-        return res.json({'status' : false});
-    }
-});
-
-// GET ALL SUBJECTS IN GALLERY ✅
-app.get('/kairos/gallery/subject', async (req, res) => {
-    console.log(`GET ALL FACES OF ${req.query.subject_id} 👨`);
-    try {
-        const result = await kairosAxios.post('https://api.kairos.com/gallery/view_subject', {
-            gallery_name: process.env.KAIROS_GALLERY_NAME,
-            subject_id: req.query.subject_id
-        })
-        return res.json(result.data);
-    } catch(err) {
-        console.log(err);
-        return res.json({'status' : false});
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
 });
 
 // ENROLL FACE BY SUBJECT_ID ✅
 app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
-    console.log(`ENROLL FACE BY SUBJECT_ID: ${req.body.subject_id} 👨`);
+    console.log('[POST] /kairos/enroll');
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
@@ -226,16 +195,16 @@ app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
     };
     try {
         const result = await kairosAxios.post('https://api.kairos.com/enroll', params)
-        return res.json({'status': 'success', 'face_id': result.data.face_id});
+        console.log('FACE_ENROLLED 😀');
+        return res.status(200).json({ status: 'SUCCESS' })
     } catch(err) {
-        console.log(err);
-        return res.json({'status' : false});
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
 });
 
 // VERIFY FACE BY SUBJECT_ID ✅
 app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
-    console.log(`VERIFY FACE BY SUBJECT_ID: ${req.body.subject_id} 👨`);
+    console.log('[POST] /kairos/verify');
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
@@ -247,24 +216,20 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
         // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
         const status = result.data.images[0].transaction.confidence > 0.6
         if(status) {
-            conn.query(`UPDATE user SET face_verified = ${status} WHERE passport = '${req.body.subject_id}';`, function (err, data, fields) {
-                if(err) return res.status(400).json({'status' : err});
-                console.log('FACE VERIFIED 😀');
-                return res.status(200).json({
-                    status: "success"
-                });
-            });
+            console.log('FACE_VERIFIED 😀');
+            return res.status(200).json({ status: 'SUCCESS' })
         } else {
-            console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(400).json({ status: "FAILED" })
+            console.log('FACE_VERIFICATION_FAILED 🥲');
+            return res.status(400).json({ status: "FACE_VERIFICATION_FAILED" })
         }
     } catch(err) {
-        console.log(err);
-        return res.status(400).json({ status: err })
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
 });
 
 
 httpServer.listen(8080);
 httpsServer.listen(8443);
-console.log('Listening on localhost:8080');
+console.log('Listening on');
+console.log(':: http://localhost:8080');
+console.log(':: https://passi-api.tutorism.me:8443');
