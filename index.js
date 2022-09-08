@@ -4,6 +4,11 @@ const express = require('express');
 const JSONStream = require('JSONStream');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
+var http = require('http');
+var https = require('https');
+var privateKey  = fs.readFileSync('./cert/privkey1.pem', 'utf8');
+var certificate = fs.readFileSync('./cert/cert1.pem', 'utf8');
+var credentials = {key: privateKey, cert: certificate};
 
 require('dotenv').config() 
 
@@ -21,6 +26,9 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(credentials, app);
 
 // Multiparty middleware
 const multipartMiddleware = multipart();
@@ -195,5 +203,6 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
 });
 
 
-app.listen(3128);
+httpServer.listen(8080);
+httpsServer.listen(8443);
 console.log('Listening on localhost:3128');
