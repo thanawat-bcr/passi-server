@@ -4,6 +4,7 @@ const express = require('express');
 const JSONStream = require('JSONStream');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
+var bcrypt = require('bcryptjs');
 var http = require('http');
 var https = require('https');
 var privateKey  = fs.readFileSync('./cert/privkey1.pem', 'utf8');
@@ -68,6 +69,24 @@ app.post('/image', multipartMiddleware, (req, res) => {
     // let base64image = fs.readFileSync(req.files.image.path, 'base64');
     console.log(req.files.image)
     return res.status(200).json({ status: 'success' })
+})
+app.post('/bcrypt/compare', (req, res) => {
+    const { pin, hash } = req.body
+    console.log('TEST API: BCRYPT 🫣', pin, hash);
+    bcrypt.compare(pin, hash).then((response) => {
+        // res === true
+        return res.status(200).json({ status: response })
+    }).catch((err) => {
+        console.log(err)
+        throw res.status(200).json({ status: 'error' })
+    })
+})
+app.post('/bcrypt/hash', (req, res) => {
+    const { pin } = req.body
+    console.log('TEST API: BCRYPT 🫣', pin);
+    var salt = bcrypt.genSaltSync(10);
+    var hash = bcrypt.hashSync(pin, salt);
+    return res.status(200).json({ status: 'success', pin, hash, salt })
 })
 
 // REGISTER USER ✅
@@ -205,4 +224,4 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
 
 httpServer.listen(8080);
 httpsServer.listen(8443);
-console.log('Listening on localhost:3128');
+console.log('Listening on localhost:8080');
