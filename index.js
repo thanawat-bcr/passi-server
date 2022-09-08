@@ -82,7 +82,7 @@ app.post('/image/file', multipartMiddleware, async (req, res) => {
             return res.status(200).json({status: "SUCCESS"});
         } else {
             console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(400).json({ status: "FAILED" })
+            return res.status(200).json({ status: "FAILED" })
         }
     } catch(err) {
         console.log(err);
@@ -106,7 +106,7 @@ app.post('/image/base64', async (req, res) => {
             return res.status(200).json({status: "SUCCESS"});
         } else {
             console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(400).json({ status: "FAILED" })
+            return res.status(200).json({ status: "FAILED" })
         }
     } catch(err) {
         console.log(err);
