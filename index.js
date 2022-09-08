@@ -64,11 +64,54 @@ app.get('/mysql', async (req, res) => {
         });
     });
 })
-app.post('/image', multipartMiddleware, (req, res) => {
-    console.log('TEST API: IMAGE 🙂');
-    // let base64image = fs.readFileSync(req.files.image.path, 'base64');
-    console.log(req.files.image)
-    return res.status(200).json({ status: 'success' })
+app.post('/image/file', multipartMiddleware, async (req, res) => {
+    console.log('TEST API: IMAGE FILE 🙂');
+    
+    let base64image = fs.readFileSync(req.files.image.path, 'base64');
+    var params = {
+        image: base64image,
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: 'AB1325944',
+    };
+    try {
+        const result = await kairosAxios.post('https://api.kairos.com/verify', params)
+        // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
+        const status = result.data.images[0].transaction.confidence > 0.6
+        if(status) {
+            console.log('FACE VERIFIED SUCCESS 😉');
+            return res.status(200).json({status: "SUCCESS"});
+        } else {
+            console.log('FACE VERIFIED FAILED 🥲');
+            return res.status(400).json({ status: "FAILED" })
+        }
+    } catch(err) {
+        console.log(err);
+        return res.status(400).json({ status: err })
+    }
+})
+app.post('/image/base64', async (req, res) => {
+    console.log('TEST API: IMAGE BASE 64 🙂');
+    
+    var params = {
+        image: req.body.image,
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: 'AB1325944',
+    };
+    try {
+        const result = await kairosAxios.post('https://api.kairos.com/verify', params)
+        // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
+        const status = result.data.images[0].transaction.confidence > 0.6
+        if(status) {
+            console.log('FACE VERIFIED SUCCESS 😉');
+            return res.status(200).json({status: "SUCCESS"});
+        } else {
+            console.log('FACE VERIFIED FAILED 🥲');
+            return res.status(400).json({ status: "FAILED" })
+        }
+    } catch(err) {
+        console.log(err);
+        return res.status(400).json({ status: err })
+    }
 })
 app.post('/bcrypt/compare', (req, res) => {
     const { pin, hash } = req.body
@@ -145,10 +188,10 @@ app.get('/kairos/galleries', async (req, res) => {
 
 // GET ALL SUBJECTS IN GALLERY ✅
 app.get('/kairos/gallery', async (req, res) => {
-    console.log(`GET ALL SUBJECTS IN ${req.query.gallery_name} GALLERY 👨`);
+    console.log(`GET ALL SUBJECTS IN ${process.env.KAIROS_GALLERY_NAME} GALLERY 👨`);
     try {
         const result = await kairosAxios.post('https://api.kairos.com/gallery/view', {
-            gallery_name: req.query.gallery_name
+            gallery_name: process.env.KAIROS_GALLERY_NAME
         })
         return res.json(result.data);
     } catch(err) {
@@ -162,7 +205,7 @@ app.get('/kairos/gallery/subject', async (req, res) => {
     console.log(`GET ALL FACES OF ${req.query.subject_id} 👨`);
     try {
         const result = await kairosAxios.post('https://api.kairos.com/gallery/view_subject', {
-            gallery_name: req.query.gallery_name,
+            gallery_name: process.env.KAIROS_GALLERY_NAME,
             subject_id: req.query.subject_id
         })
         return res.json(result.data);
@@ -178,7 +221,7 @@ app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
-        gallery_name: req.body.gallery_name,
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
         subject_id: req.body.subject_id,
     };
     try {
@@ -196,7 +239,7 @@ app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
-        gallery_name: req.body.gallery_name,
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
         subject_id: req.body.subject_id,
     };
     try {
