@@ -66,7 +66,10 @@ app.get('/mysql', async (req, res) => {
 })
 app.post('/image/file', multipartMiddleware, async (req, res) => {
     console.log('TEST API: IMAGE FILE 🙂');
-    
+    if(!req.files.image?.path) {
+        console.log('IMAGE_NOT_FOUND 😉');
+        return res.status(400).json({status: "IMAGE_NOT_FOUND"});
+    }
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
@@ -187,6 +190,10 @@ app.get('/kairos/gallery', async (req, res) => {
 // ENROLL FACE BY SUBJECT_ID ✅
 app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
     console.log('[POST] /kairos/enroll');
+    if(!req.files.image?.path) {
+        console.log('IMAGE_NOT_FOUND 😉');
+        return res.status(400).json({status: "IMAGE_NOT_FOUND"});
+    }
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
@@ -205,6 +212,10 @@ app.post('/kairos/enroll',multipartMiddleware , async (req, res) => {
 // VERIFY FACE BY SUBJECT_ID ✅
 app.post('/kairos/verify',multipartMiddleware , async (req, res) => {
     console.log('[POST] /kairos/verify');
+    if(!req.files.image?.path) {
+        console.log('IMAGE_NOT_FOUND 😉');
+        return res.status(400).json({status: "IMAGE_NOT_FOUND"});
+    }
     let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
         image: base64image,
