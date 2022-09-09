@@ -91,7 +91,34 @@ app.post('/image/file', multipartMiddleware, async (req, res) => {
         console.log(err);
         return res.status(400).json({ status: err })
     }
-})
+});
+app.post('/image/base64', async (req, res) => {
+    console.log('TEST API: IMAGE BASE64 🙂');
+    if(!req.body.image) {
+        console.log('IMAGE_NOT_FOUND 😉');
+        return res.status(400).json({status: "IMAGE_NOT_FOUND"});
+    }
+    var params = {
+        image: req.body.image,
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: 'AB1325944',
+    };
+    try {
+        const result = await kairosAxios.post('https://api.kairos.com/verify', params)
+        // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
+        const status = result.data.images[0].transaction.confidence > 0.6
+        if(status) {
+            console.log('FACE VERIFIED SUCCESS 😉');
+            return res.status(200).json({status: "SUCCESS"});
+        } else {
+            console.log('FACE VERIFIED FAILED 🥲');
+            return res.status(200).json({ status: "FAILED" })
+        }
+    } catch(err) {
+        console.log(err);
+        return res.status(400).json({ status: err })
+    }
+});
 
 // REGISTER USER ✅
 app.post('/user/register', (req, res) => {
