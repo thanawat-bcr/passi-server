@@ -189,7 +189,6 @@ app.post('/user/email', (req, res) => {
 // USER PASSPORT ✅
 app.get('/user/passport', auth, (req, res) => {
     console.log('[GET] /user/passport');
-    console.log(req.user)
     conn.query(`SELECT passport FROM user WHERE id = '${req.user.user_id}';`, function (err, data, fields) {
         if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
         console.log('SUCCESS 😀');
