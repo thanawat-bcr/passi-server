@@ -5,11 +5,14 @@ const JSONStream = require('JSONStream');
 const bodyParser = require('body-parser');
 const multipart = require('connect-multiparty');
 var bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
 var http = require('http');
 var https = require('https');
 var privateKey  = fs.readFileSync('./cert/privkey1.pem', 'utf8');
 var certificate = fs.readFileSync('./cert/cert1.pem', 'utf8');
 var credentials = {key: privateKey, cert: certificate};
+
+const auth = require("./middleware/auth");
 
 require('dotenv').config() 
 
@@ -21,7 +24,6 @@ kairosAxios.defaults.headers.common['app_key'] = process.env.KAIROS_APP_KEY
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
 const conn = require("./services/db");
-
 
 const app = express();
 app.use(cors());
@@ -132,16 +134,21 @@ app.post('/user/register', (req, res) => {
 
     conn.query(`INSERT INTO user (email, password, pin, passport) VALUES ('${email}', '${hashedPassword}', '${hashedPin}', '${passport}');`, function (err, data, fields) {
         if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
-        console.log('USER_CREATED 😀');
-        return res.status(201).json({status: "SUCCESS"});
+        console.log('USER_CREATED 😀', data.insertId);
+        const token = jwt.sign(
+            { user_id: data.insertId, email }, process.env.TOKEN_KEY,
+            { expiresIn: "1h" }
+        );
+        return res.status(201).json({ status: 'SUCCESS', token: token })
     });
 })
 // LOGIN USER ✅
 app.post('/user/login', (req, res) => {
     console.log('[POST] /user/login');
     const { email, password } = req.body;
+    if (!(email && password)) return res.status(400).json({ status: 'INPUT_IS_REQUIRED' })
 
-    conn.query(`SELECT password, passport FROM user WHERE email = '${email}';`, function (err, data, fields) {
+    conn.query(`SELECT id, password, passport FROM user WHERE email = '${email}';`, function (err, data, fields) {
         if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
         if(data.length === 0) {
             console.log('USER_NOT_FOUND 😢');
@@ -150,7 +157,11 @@ app.post('/user/login', (req, res) => {
         bcrypt.compare(password, data[0].password).then((result) => {
             if (result) {
                 console.log('USER_LOGIN 😀');
-                return res.status(200).json({ status: 'SUCCESS', passport: data[0].passport })
+                const token = jwt.sign(
+                    { user_id: data[0].id, email }, process.env.TOKEN_KEY,
+                    { expiresIn: '1h' }
+                );
+                return res.status(200).json({ status: 'SUCCESS', token: token })
             } else {
                 console.log('WRONG_PASSWORD 😢');
                 return res.status(401).json({ status: 'WRONG_PASSWORD' })
@@ -173,6 +184,19 @@ app.post('/user/email', (req, res) => {
         }
         console.log('EMAIL_AVAILABLE 😀');
         return res.status(200).json({ status: 'SUCCESS' })
+    });
+})
+// USER PASSPORT ✅
+app.get('/user/passport', auth, (req, res) => {
+    console.log('[GET] /user/passport');
+    console.log(req.user)
+    conn.query(`SELECT passport FROM user WHERE id = '${req.user.user_id}';`, function (err, data, fields) {
+        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
+        console.log('SUCCESS 😀');
+        return res.status(200).json({
+            status: 'SUCCESS',
+            passport: data[0].passport,
+        });
     });
 })
 // USER LIST ✅
