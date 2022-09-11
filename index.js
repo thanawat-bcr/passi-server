@@ -94,16 +94,19 @@ app.post('/image/file', multipartMiddleware, async (req, res) => {
         return res.status(400).json({ status: err })
     }
 });
-app.post('/image/base64', async (req, res) => {
-    console.log('TEST API: IMAGE BASE64 🙂');
-    if(!req.body.image) {
+
+// REGISTER USER ⚠️ SCAN QR CODE -> VERIFY FACE WITH SUBJECT_ID FROM QR -> REGISTER EMAIL + PASSWORD
+app.post('/user/verify', multipartMiddleware, async (req, res) => {
+    console.log('[POST] /user/verify');
+    if(!req.files.image?.path) {
         console.log('IMAGE_NOT_FOUND 😉');
         return res.status(400).json({status: "IMAGE_NOT_FOUND"});
     }
+    let base64image = fs.readFileSync(req.files.image.path, 'base64');
     var params = {
-        image: req.body.image,
+        image: base64image,
         gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: 'AB1325944',
+        subject_id: req.body.subject_id,
     };
     try {
         const result = await kairosAxios.post('https://api.kairos.com/verify', params)
@@ -114,90 +117,123 @@ app.post('/image/base64', async (req, res) => {
             return res.status(200).json({status: "SUCCESS"});
         } else {
             console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(200).json({ status: "FAILED" })
+            return res.status(400).json({ status: "FAILED" })
         }
     } catch(err) {
-        console.log(err);
-        return res.status(400).json({ status: err })
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
 });
 
-// REGISTER USER ✅
 app.post('/user/register', (req, res) => {
     console.log('[POST] /user/register');
-    const { email, password, pin, passport } = req.body;
+    const { email, password, passport } = req.body;
+
+    if (!(email && password && passport)) {
+        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+    }
 
     var saltPassword = bcrypt.genSaltSync(10);
     var hashedPassword = bcrypt.hashSync(password, saltPassword);
-    var saltPin = bcrypt.genSaltSync(10);
-    var hashedPin = bcrypt.hashSync(pin, saltPin);
 
-    conn.query(`INSERT INTO user (email, password, pin, passport) VALUES ('${email}', '${hashedPassword}', '${hashedPin}', '${passport}');`, function (err, data, fields) {
-        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
-        console.log('USER_CREATED 😀', data.insertId);
-        const token = jwt.sign(
-            { user_id: data.insertId, email }, process.env.TOKEN_KEY,
-            { expiresIn: "1h" }
-        );
-        return res.status(201).json({ status: 'SUCCESS', token: token })
-    });
+    conn.query(
+        `INSERT INTO user (email, password, passport) VALUES ('${email}', '${hashedPassword}', '${passport}');`,
+        function (err, data, fields) {
+            // ER_DUP_ENTRY -> MAIL IN USED OR PASSPORT IN USED
+            // ER_NO_REFERENCED_ROW_2 -> PASSPORT NOT FOUND [PASSPORT1234, AB1325944]
+            if(err) { 
+                console.log(err.code)
+                if (err.code === 'ER_NO_REFERENCED_ROW_2') return res.status(400).json({ status: 'PASSPORT_NOT_FOUND' });
+                if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === email) return res.status(400).json({ status: 'EMAIL_ALREADY_USED' });
+                if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === passport) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' });
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+            }
+            console.log('USER_CREATED 😀', data.insertId);
+            const token = jwt.sign(
+                { id: data.insertId, email }, process.env.TOKEN_KEY,
+                { expiresIn: "1h" }
+            );
+            return res.status(201).json({ status: 'SUCCESS', token: token })
+        });
 })
-// LOGIN USER ✅
+
 app.post('/user/login', (req, res) => {
     console.log('[POST] /user/login');
     const { email, password } = req.body;
-    if (!(email && password)) return res.status(400).json({ status: 'INPUT_IS_REQUIRED' })
 
-    conn.query(`SELECT id, password, passport FROM user WHERE email = '${email}';`, function (err, data, fields) {
-        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
-        if(data.length === 0) {
-            console.log('USER_NOT_FOUND 😢');
-            return res.status(400).json({ status: 'USER_NOT_FOUND' })
-        }
-        bcrypt.compare(password, data[0].password).then((result) => {
-            if (result) {
-                console.log('USER_LOGIN 😀');
-                const token = jwt.sign(
-                    { user_id: data[0].id, email }, process.env.TOKEN_KEY,
-                    { expiresIn: '1h' }
-                );
-                return res.status(200).json({ status: 'SUCCESS', token: token })
-            } else {
-                console.log('WRONG_PASSWORD 😢');
-                return res.status(401).json({ status: 'WRONG_PASSWORD' })
+    if (!(email && password)) {
+        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+    }
+
+    conn.query(
+        `SELECT id, password FROM user WHERE email = '${email}';`,
+        function (err, data, fields) {
+            if(err) { 
+                console.log(err.code)
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
             }
-        }).catch((err) => {
-            console.log('SOMETHING_WENT_WRONG 😢', err);
-            return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
-        })
-    });
-})
-// CHECK USER EMAIL ✅
-app.post('/user/email', (req, res) => {
-    console.log('[POST] /user/email');
-    const { email } = req.body;
-    conn.query(`SELECT email FROM user WHERE email = '${email}';`, function (err, data, fields) {
-        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
-        if(data.length > 0) {
-            console.log('EMAIL_ALREADY_EXISTS 😢');
-            return res.status(400).json({ status: 'EMAIL_ALREADY_EXISTS' })
-        }
-        console.log('EMAIL_AVAILABLE 😀');
-        return res.status(200).json({ status: 'SUCCESS' })
-    });
-})
-// USER PASSPORT ✅
-app.get('/user/passport', auth, (req, res) => {
-    console.log('[GET] /user/passport');
-    conn.query(`SELECT passport FROM user WHERE id = '${req.user.user_id}';`, function (err, data, fields) {
-        if(err) { console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' }); }
-        console.log('SUCCESS 😀');
-        return res.status(200).json({
-            status: 'SUCCESS',
-            passport: data[0].passport,
+            if (data.length === 0) return res.status(400).json({ status: 'USER_NOT_FOUND' });
+            bcrypt.compare(password, data[0].password).then((result) => {
+                if (result) {
+                    console.log('USER_LOGIN 😀');
+                    const token = jwt.sign(
+                        { id: data[0].id, email }, process.env.TOKEN_KEY,
+                        { expiresIn: '1h' }
+                    );
+                    return res.status(200).json({ status: 'SUCCESS', token: token })
+                } else {
+                    console.log('WRONG_PASSWORD 😢');
+                    return res.status(401).json({ status: 'WRONG_PASSWORD' })
+                }
+            }).catch((err) => {
+                console.log('SOMETHING_WENT_WRONG 😢', err);
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+            })
         });
-    });
 })
+
+app.get('/user/pin', auth, (req, res) => {
+    console.log('[GET] /user/pin');
+
+    const { id } = req.user;
+
+    conn.query(
+        `SELECT pin FROM user WHERE id = ${id};`,
+        function (err, data, fields) {
+            if(err) { 
+                console.log(err)
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+            }
+            if (!data[0].pin) return res.status(400).json({ status: 'PIN_NOT_CREATED' });
+            return res.status(200).json({ status: 'SUCCESS' })
+        });
+})
+
+app.post('/user/pin', auth, (req, res) => {
+    console.log('[POST] /user/pin');
+
+    const { id } = req.user;
+    const { pin } = req.body;
+
+    if (!(pin)) {
+        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+    }
+
+    var salt = bcrypt.genSaltSync(10);
+    var hash = bcrypt.hashSync(pin, salt);
+    console.log(hash)
+
+    conn.query(
+        `UPDATE user SET pin = '${hash}' WHERE id = '${id}';`,
+        function (err, data, fields) {
+            if(err) { 
+                console.log(err)
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+            }
+            console.log('PIN_CREATED 😀');
+            return res.status(201).json({ status: 'SUCCESS' })
+        });
+})
+
 // USER LIST ✅
 app.get('/user', (req, res) => {
     console.log('[GET] /user/list');
