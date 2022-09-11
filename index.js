@@ -267,7 +267,22 @@ app.get('/kairos/gallery', async (req, res) => {
             gallery_name: process.env.KAIROS_GALLERY_NAME
         })
         console.log('SUCCESS 😀');
-        return res.status(200).json({ status: 'SUCCESS', galleries: result.data.subject_ids })
+        return res.status(200).json({ status: 'SUCCESS', passports: result.data.subject_ids })
+    } catch(err) {
+        console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+    }
+});
+
+// GET ALL SUBJECTS IN GALLERY ✅
+app.post('/kairos/remove', async (req, res) => {
+    console.log('[POST] /kairos/remove');
+    try {
+        const result = await kairosAxios.post('https://api.kairos.com/gallery/remove_subject', {
+            gallery_name: process.env.KAIROS_GALLERY_NAME,
+            subject_id: req.body.passport
+        })
+        console.log('SUCCESS 😀');
+        return res.status(200).json({ status: 'SUCCESS' })
     } catch(err) {
         console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
     }
