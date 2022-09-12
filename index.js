@@ -16,10 +16,12 @@ app.use(bodyParser.json());
 const authRouter = require('./src/routes/auth')
 const userRouter = require('./src/routes/user')
 const kairosRouter = require('./src/routes/kairos')
+const qrRouter = require('./src/routes/qr')
 
 app.use('/auth', authRouter);
 app.use('/user', userRouter);
 app.use('/kairos', kairosRouter);
+app.use('/qr', qrRouter);
 
 // TEST API
 app.get('/test', (req, res) =>  res.status(200).json({ status: 'success' }))
