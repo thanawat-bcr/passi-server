@@ -40,10 +40,10 @@ async function verify(req, res, next) {
         const status = result.data.images[0].transaction.confidence > 0.6
         if(status) {
             console.log('FACE VERIFIED SUCCESS 😉');
-            return res.status(200).json({status: `SUCCESS: ${result.data.images[0].transaction.confidence}`});
+            return res.status(200).json({status: `SUCCESS`, data: result.data.images[0].transaction.confidence });
         } else {
             console.log('FACE VERIFIED FAILED 🥲');
-            return res.status(400).json({ status: `FAILED: ${result.data.images[0].transaction.confidence}`})
+            return res.status(200).json({ status: `FAILED`, data: result.data.images[0].transaction.confidence })
         }
     } catch(err) {
         console.log('SOMETHING_WENT_WRONG 😢', err);
