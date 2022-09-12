@@ -41,38 +41,38 @@ async function login(req, res, next) {
 
 // EMAIL REGISTER
 async function register(req, res, next) {
-  console.log('[POST] /auth/register');
-  const { email, password, passport } = req.body;
+    console.log('[POST] /auth/register');
+    const { email, password, passport } = req.body;
 
-  if (!(email && password && passport)) {
-      console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
-  }
+    if (!(email && password && passport)) {
+        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+    }
 
-  var saltPassword = bcrypt.genSaltSync(10);
-  var hashedPassword = bcrypt.hashSync(password, saltPassword);
+    var saltPassword = bcrypt.genSaltSync(10);
+    var hashedPassword = bcrypt.hashSync(password, saltPassword);
 
-  conn.query(
-      `INSERT INTO user (email, password, passport) VALUES ('${email}', '${hashedPassword}', '${passport}');`,
-      function (err, data, fields) {
-          // ER_DUP_ENTRY -> MAIL IN USED OR PASSPORT IN USED
-          // ER_NO_REFERENCED_ROW_2 -> PASSPORT NOT FOUND [PASSPORT1234, AB1325944]
-          if(err) { 
-              console.log(err.code)
-              if (err.code === 'ER_NO_REFERENCED_ROW_2') return res.status(400).json({ status: 'PASSPORT_NOT_FOUND' });
-              if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === email) return res.status(400).json({ status: 'EMAIL_ALREADY_USED' });
-              if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === passport) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' });
-              return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
-          }
-          console.log('USER_CREATED 😀', data.insertId);
-          const token = jwt.sign(
-              { id: data.insertId, email }, process.env.TOKEN_KEY,
-              { expiresIn: "1h" }
-          );
-          return res.status(201).json({ status: 'SUCCESS', token: token })
-      });
+    conn.query(
+        `INSERT INTO user (email, password, passport) VALUES ('${email}', '${hashedPassword}', '${passport}');`,
+        function (err, data, fields) {
+            // ER_DUP_ENTRY -> MAIL IN USED OR PASSPORT IN USED
+            // ER_NO_REFERENCED_ROW_2 -> PASSPORT NOT FOUND [PASSPORT1234, AB1325944]
+            if(err) { 
+                console.log(err.code)
+                if (err.code === 'ER_NO_REFERENCED_ROW_2') return res.status(400).json({ status: 'PASSPORT_NOT_FOUND' });
+                if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === email) return res.status(400).json({ status: 'EMAIL_ALREADY_USED' });
+                if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === passport) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' });
+                return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+            }
+            console.log('USER_CREATED 😀', data.insertId);
+            const token = jwt.sign(
+                { id: data.insertId, email }, process.env.TOKEN_KEY,
+                { expiresIn: "1h" }
+            );
+            return res.status(201).json({ status: 'SUCCESS', token: token })
+        });
 }
 
 module.exports = {
-  login,
-  register
+    login,
+    register
 }
