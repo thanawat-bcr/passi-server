@@ -1,8 +1,6 @@
 require('dotenv').config() 
 const conn = require("../services/db");
 var bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
-const fs = require('fs');
 
 // GET ALL USERS
 async function getUsers(req, res, next) {
