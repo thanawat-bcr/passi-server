@@ -25,7 +25,7 @@ async function login(req, res, next) {
                     console.log('USER_LOGIN 😀');
                     const token = jwt.sign(
                         { id: data[0].id, email }, process.env.TOKEN_KEY,
-                        { expiresIn: '1h' }
+                        // { expiresIn: '1h' }
                     );
                     return res.status(200).json({ status: 'SUCCESS', token: token })
                 } else {
@@ -66,7 +66,7 @@ async function register(req, res, next) {
             console.log('USER_CREATED 😀', data.insertId);
             const token = jwt.sign(
                 { id: data.insertId, email }, process.env.TOKEN_KEY,
-                { expiresIn: "1h" }
+                // { expiresIn: "1h" }
             );
             return res.status(201).json({ status: 'SUCCESS', token: token })
         });
