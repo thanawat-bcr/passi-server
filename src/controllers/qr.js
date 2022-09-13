@@ -39,7 +39,8 @@ async function verifyQR(req, res, next) {
 
         const result = await bcrypt.compare(pin, user.pin)
         if (result) {
-            return res.status(200).json({ status: 'SUCCESS' })
+            const { passport, name, surname, nationality } = user
+            return res.status(200).json({ status: 'SUCCESS', user: { passport, name, surname, nationality }})
         } else {
             return res.status(400).json({ status: 'PIN_NOT_MATCHED' })
         }
