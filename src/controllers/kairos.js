@@ -1,5 +1,6 @@
 require('dotenv').config()
 const fs = require('fs');
+const knex = require("../services/db");
 
 const kairosAxios = require('axios');
 
@@ -62,11 +63,32 @@ async function enroll(req, res, next) {
   var params = {
       image: base64image,
       gallery_name: process.env.KAIROS_GALLERY_NAME,
-      subject_id: req.body.passport,
+      // subject_id: req.body.passport,
   };
   try {
-      const result = await kairosAxios.post('https://api.kairos.com/enroll', params)
-      console.log('FACE_ENROLLED 😀');
+      const passports = await knex.select('passport_no').from('passport').whereILike('passport_no', 'PASSI%')
+      const passport_id = `0000${passports.length}`
+      const passport_no = 'PASSI' + passport_id.substring(passport_id.length - 4) 
+      // console.log(passport_no)
+      let today = new Date().toISOString().split('T')[0]
+      await knex('passport').insert({
+        passport_no,
+        name: `MR. PASSI_${passports.length}`,
+        surname: 'CAPSTONE',
+        type: 'P',
+        country_code: 'THA',
+        nationality: 'THAI',
+        date_of_birth: today,
+        place_of_birth: 'BANGKOK',
+        identification_no: '1234567890123',
+        sex: 'M',
+        height: '1.75',
+        date_of_issue: today,
+        date_of_expiry: today,
+      })
+      params.subject_id = passport_no;
+      
+      await kairosAxios.post('https://api.kairos.com/enroll', params)
       return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {
       console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
