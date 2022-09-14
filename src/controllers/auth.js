@@ -29,6 +29,29 @@ async function login(req, res, next) {
     }
 }
 
+// CHECK QR
+async function checkQR(req, res, next) {
+    console.log('[POST] /auth/qr');
+    const { passport } = req.body;
+
+    if (!(passport)) {
+        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+    }
+
+    try {
+        const isPassportUsed = await knex.first('passport').from('user').where({ passport })
+        if (isPassportUsed) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' })
+
+        const isPassportExist = await knex.first('passport_no').from('passport').where({ passport_no: passport })
+        if (!isPassportExist) return res.status(400).json({ status: 'PASSPORT_NOT_EXIST' })
+
+        return res.status(200).json({ status: 'SUCCESS' })
+    } catch(err) {
+        console.log('SOMETHING_WENT_WRONG 😢', err);
+        return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+    }
+}
+
 // REGISTER
 async function register(req, res, next) {
     console.log('[POST] /auth/register');
@@ -61,5 +84,6 @@ async function register(req, res, next) {
 
 module.exports = {
     login,
-    register
+    register,
+    checkQR
 }
