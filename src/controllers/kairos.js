@@ -59,6 +59,13 @@ async function enroll(req, res, next) {
       console.log('IMAGE_NOT_FOUND 😉');
       return res.status(400).json({status: "IMAGE_NOT_FOUND"});
   }
+
+  const { name, surname } = req.body;
+
+  if (!(name && surname)) {
+    console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+  }
+
   let base64image = fs.readFileSync(req.files.image.path, 'base64');
   var params = {
       image: base64image,
@@ -73,8 +80,8 @@ async function enroll(req, res, next) {
       let today = new Date().toISOString().split('T')[0]
       await knex('passport').insert({
         passport_no,
-        name: `MR. PASSI_${passports.length}`,
-        surname: 'CAPSTONE',
+        name,
+        surname,
         type: 'P',
         country_code: 'THA',
         nationality: 'THAI',
@@ -89,7 +96,7 @@ async function enroll(req, res, next) {
       params.subject_id = passport_no;
       
       await kairosAxios.post('https://api.kairos.com/enroll', params)
-      return res.status(200).json({ status: 'SUCCESS' })
+      return res.status(200).json({ status: 'SUCCESS', passport: passport_no })
   } catch(err) {
       console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
   }
