@@ -5,7 +5,7 @@ const knex = require("../services/db");
 
 // GET QR
 async function getQR(req, res, next) {
-    console.log('[GET] /qr');
+    // console.log('[GET] /qr');
     const { id } = req.user;
 
     try {
@@ -14,7 +14,7 @@ async function getQR(req, res, next) {
 
         const token = jwt.sign(
             { id, passport: user.passport }, process.env.TOKEN_KEY,
-            { expiresIn: '5m' }
+            { expiresIn: '1m' }
         );
         return res.status(200).json({ status: 'SUCCESS', token })
     } catch(err) {
