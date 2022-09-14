@@ -26,6 +26,24 @@ async function resetAll(req, res, next) {
   }
 }
 
+// Get Passports
+async function getPassports(req, res, next) {
+  console.log('[GET] /admin/passports');
+  try {
+    const passports = await knex.select('passport_no', 'name', 'surname', 'id', 'email')
+                                  .from('passport')
+                                  .leftJoin('user' ,function() {
+                                    this.on('passport.passport_no', '=', 'user.passport')
+                                  })
+    console.log(passports)
+    return res.status(200).json({ status: 'SUCCESS', passports })
+  } catch(err) {
+    console.log('SOMETHING_WENT_WRONG 😢', err);
+    return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+  }
+}
+
 module.exports = {
   resetAll,
+  getPassports
 }
