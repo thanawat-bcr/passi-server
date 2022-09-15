@@ -14,7 +14,7 @@ async function getQR(req, res, next) {
 
         const token = jwt.sign(
             { id, passport: user.passport }, process.env.TOKEN_KEY,
-            { expiresIn: '1m' }
+            { expiresIn: '30s' }
         );
         return res.status(200).json({ status: 'SUCCESS', token })
     } catch(err) {
@@ -36,7 +36,6 @@ async function verifyQR(req, res, next) {
     try {
         const user = await knex.first('id', 'passport', 'name', 'surname', 'nationality', 'pin').from('user').join('passport', { 'passport.passport_no': 'user.passport' }).where({ 'user.id': id })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
-
         const result = await bcrypt.compare(pin, user.pin)
         if (result) {
             const { passport, name, surname, nationality } = user
