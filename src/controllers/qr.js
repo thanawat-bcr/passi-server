@@ -23,26 +23,44 @@ async function getQR(req, res, next) {
     }
 }
 
-// VERIFY QR
+// VERIFY QR + PIN
+// async function verifyQR(req, res, next) {
+//     console.log('[POST] /qr/verify');
+//     const { id } = req.user;
+//     const { pin } = req.body;
+
+//     if (!(pin)) {
+//         console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+//     }
+
+//     try {
+//         const user = await knex.first('id', 'passport', 'name', 'surname', 'nationality', 'pin').from('user').join('passport', { 'passport.passport_no': 'user.passport' }).where({ 'user.id': id })
+//         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
+//         const result = await bcrypt.compare(pin, user.pin)
+//         if (result) {
+//             const { passport, name, surname, nationality } = user
+//             return res.status(200).json({ status: 'SUCCESS', user: { passport, name, surname, nationality }})
+//         } else {
+//             return res.status(400).json({ status: 'PIN_NOT_MATCHED' })
+//         }
+//     } catch(err) {
+//         console.log('SOMETHING_WENT_WRONG 😢', err);
+//         return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+//     }
+// }
+
+// Verify QR Only
 async function verifyQR(req, res, next) {
     console.log('[POST] /qr/verify');
     const { id } = req.user;
-    const { pin } = req.body;
-
-    if (!(pin)) {
-        console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
-    }
 
     try {
-        const user = await knex.first('id', 'passport', 'name', 'surname', 'nationality', 'pin').from('user').join('passport', { 'passport.passport_no': 'user.passport' }).where({ 'user.id': id })
+        const user = await knex.first('id', 'passport', 'name', 'surname', 'nationality').from('user').join('passport', { 'passport.passport_no': 'user.passport' }).where({ 'user.id': id })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
-        const result = await bcrypt.compare(pin, user.pin)
-        if (result) {
-            const { passport, name, surname, nationality } = user
-            return res.status(200).json({ status: 'SUCCESS', user: { passport, name, surname, nationality }})
-        } else {
-            return res.status(400).json({ status: 'PIN_NOT_MATCHED' })
-        }
+
+        const { passport, name, surname, nationality } = user
+
+        return res.status(200).json({ status: 'SUCCESS', user: { passport, name, surname, nationality }})
     } catch(err) {
         console.log('SOMETHING_WENT_WRONG 😢', err);
         return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
