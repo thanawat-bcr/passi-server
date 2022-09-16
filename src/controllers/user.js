@@ -1,5 +1,6 @@
 require('dotenv').config() 
 var bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
 const knex = require("../services/db");
 
 // GET ALL USERS
@@ -115,10 +116,32 @@ async function updatePassword(req, res, next) {
     }
 }
 
+// GET QR
+async function getQR(req, res, next) {
+    // console.log('[GET] /user/qr');
+    const { id } = req.user;
+
+    try {
+        const user = await knex.first('id', 'passport').from('user').where({ id })
+        if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
+        const timer = Number(process.env.JWT_QR_EXPIRES)
+        console.log(timer)
+        const token = jwt.sign(
+            { id, passport: user.passport }, process.env.TOKEN_KEY,
+            { expiresIn: timer }
+        );
+        return res.status(200).json({ status: 'SUCCESS', token, timer })
+    } catch(err) {
+        console.log('SOMETHING_WENT_WRONG 😢', err);
+        return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+    }
+}
+
 module.exports = {
     getUsers,
     getPin,
     createPin,
     updatePin,
     updatePassword,
+    getQR,
 }
