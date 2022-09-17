@@ -127,7 +127,7 @@ async function getQR(req, res, next) {
         const timer = Number(process.env.JWT_QR_EXPIRES)
         console.log(timer)
         const token = jwt.sign(
-            { id, passport: user.passport }, process.env.TOKEN_KEY,
+            { id }, process.env.TOKEN_KEY,
             { expiresIn: timer }
         );
         return res.status(200).json({ status: 'SUCCESS', token, timer })
