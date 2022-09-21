@@ -74,7 +74,7 @@ async function enroll(req, res, next) {
   };
   try {
       const passports = await knex.select('passport_no').from('passport').whereILike('passport_no', 'PASSI%')
-      const passport_id = `0000${passports.length}`
+      const passport_id = `0000${passports.length + 1}`
       const passport_no = 'PASSI' + passport_id.substring(passport_id.length - 4) 
       // console.log(passport_no)
       let today = new Date().toISOString().split('T')[0]
