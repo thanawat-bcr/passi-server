@@ -3,28 +3,13 @@ var bcrypt = require('bcryptjs');
 const jwt = require("jsonwebtoken");
 const knex = require("../services/db");
 
-// GET ALL USERS
-async function getUsers(req, res, next) {
-    console.log('[GET] /user');
-
-    try {
-        const users = await knex.select('passport', 'email').from('user')
-        if (users.length === 0) return res.status(404).json({ status: 'USERS_NOT_FOUND' })
-
-        return res.status(200).json({ status: 'SUCCESS', users })
-    } catch(err) {
-        console.log('SOMETHING_WENT_WRONG 😢', err);
-        return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
-    }
-}
-
 // GET PIN
 async function getPin(req, res, next) {
     console.log('[GET] /user/pin');
     const { id } = req.user;
 
     try {
-        const user = await knex.first('pin').from('user').where({ id })
+        const user = await knex.first('pin').from('users').where({ id })
         if (!user.pin) return res.status(404).json({ status: 'PIN_NOT_CREATED' })
 
         return res.status(200).json({ status: 'SUCCESS' })
@@ -49,7 +34,7 @@ async function createPin(req, res, next) {
 
     
     try {
-        await knex('user').where({ id }).update({ pin: hash })
+        await knex('users').where({ id }).update({ pin: hash })
 
         return res.status(200).json({ status: 'SUCCESS' })
     } catch(err) {
@@ -72,11 +57,11 @@ async function updatePin(req, res, next) {
     var hash = bcrypt.hashSync(pin, salt);
 
     try {
-        const data = await knex.first('pin').from('user').where({ id })
+        const data = await knex.first('pin').from('users').where({ id })
 
         const result = await bcrypt.compare(old, data.pin)
         if (result) {
-            await knex('user').where({ id }).update({ pin: hash })
+            await knex('users').where({ id }).update({ pin: hash })
             return res.status(200).json({ status: 'SUCCESS' })
         } else {
             return res.status(400).json({ status: 'PIN_NOT_MATCHED' })
@@ -101,11 +86,11 @@ async function updatePassword(req, res, next) {
     var hash = bcrypt.hashSync(password, salt);
 
     try {
-        const data = await knex.first('password').from('user').where({ id })
+        const data = await knex.first('password').from('users').where({ id })
 
         const result = await bcrypt.compare(old, data.password)
         if (result) {
-            await knex('user').where({ id }).update({ password: hash })
+            await knex('users').where({ id }).update({ password: hash })
             return res.status(200).json({ status: 'SUCCESS' })
         } else {
             return res.status(400).json({ status: 'PASSWORD_NOT_MATCHED' })
@@ -122,10 +107,9 @@ async function getQR(req, res, next) {
     const { id } = req.user;
 
     try {
-        const user = await knex.first('id', 'passport').from('user').where({ id })
+        const user = await knex.first('id', 'passport').from('users').where({ id })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
         const timer = Number(process.env.JWT_QR_EXPIRES)
-        console.log(timer)
         const token = jwt.sign(
             { id }, process.env.TOKEN_KEY,
             { expiresIn: timer }
@@ -138,7 +122,6 @@ async function getQR(req, res, next) {
 }
 
 module.exports = {
-    getUsers,
     getPin,
     createPin,
     updatePin,

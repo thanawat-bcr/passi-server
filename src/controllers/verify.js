@@ -32,12 +32,15 @@ async function verifyPIN(req, res, next) {
     }
 
     try {
-        const user = await knex.first('id', 'passport', 'name', 'surname', 'nationality', 'pin').from('user').join('passport', { 'passport.passport_no': 'user.passport' }).where({ 'user.id': id })
+        const user = await knex.first('users.id', 'users.passport', 'passports.id', 'passports.passport_no', 'name', 'surname', 'nationality', 'pin', 'check_in_at')
+                                .from('users')
+                                .join('passports', { 'passports.id': 'users.passport' })
+                                .where({ 'users.id': id })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
         const result = await bcrypt.compare(pin, user.pin)
         if (result) {
-            const { passport, name, surname, nationality } = user
-            return res.status(200).json({ status: 'SUCCESS', user: { passport, name, surname, nationality }})
+            const { name, surname, nationality, check_in_at, passport_no } = user
+            return res.status(200).json({ status: 'SUCCESS', user: { passport_no, name, surname, nationality, check_in_at }})
         } else {
             return res.status(400).json({ status: 'PIN_NOT_MATCHED' })
         }
