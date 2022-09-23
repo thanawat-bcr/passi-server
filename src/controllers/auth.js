@@ -13,7 +13,7 @@ async function login(req, res, next) {
     }
 
     try {
-        const user = await knex.first('id', 'password').from('user').where({ email })
+        const user = await knex.first('id', 'password').from('users').where({ email })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
 
         const result = await bcrypt.compare(password, user.password)
@@ -39,10 +39,10 @@ async function checkQR(req, res, next) {
     }
 
     try {
-        const isPassportUsed = await knex.first('passport').from('user').where({ passport })
+        const isPassportUsed = await knex.first('passport').from('users').where({ passport })
         if (isPassportUsed) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' })
 
-        const isPassportExist = await knex.first('passport_no').from('passport').where({ passport_no: passport })
+        const isPassportExist = await knex.first('passport_no').from('passports').where({ passport_no: passport })
         if (!isPassportExist) return res.status(400).json({ status: 'PASSPORT_NOT_EXIST' })
 
         return res.status(200).json({ status: 'SUCCESS' })
@@ -65,7 +65,7 @@ async function register(req, res, next) {
     var hash = bcrypt.hashSync(password, salt);
 
     try {
-        const id = await knex('user').insert({ email, password: hash, passport })
+        const id = await knex('users').insert({ email, password: hash, passport })
 
         const token = jwt.sign({ id: id[0] }, process.env.TOKEN_KEY);
 
@@ -76,7 +76,7 @@ async function register(req, res, next) {
             return res.status(400).json({ status: 'PASSPORT_NOT_FOUND' });
         if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === email)
             return res.status(400).json({ status: 'EMAIL_ALREADY_USED' });
-        if (err.code === 'ER_DUP_ENTRY' && err.sqlMessage.split('\'')[1] === passport)
+        if (err.code === 'ER_DUP_ENTRY' && Number(err.sqlMessage.split('\'')[1]) === passport)
             return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' });
         return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
     }

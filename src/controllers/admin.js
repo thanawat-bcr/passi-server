@@ -15,10 +15,8 @@ async function resetAll(req, res, next) {
     await kairosAxios.post('https://api.kairos.com/gallery/remove', {
       gallery_name: process.env.KAIROS_GALLERY_NAME,
     })
-    await knex('user').delete()
-    await knex('passport').delete()
-    // await knex('user').whereILike('passport', 'PASSI%').delete()
-    // await knex('passport').whereILike('passport_no', 'PASSI%').delete()
+    await knex('users').delete()
+    await knex('passports').delete()
     return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {
     console.log('SOMETHING_WENT_WRONG 😢', err);
@@ -30,10 +28,10 @@ async function resetAll(req, res, next) {
 async function getPassports(req, res, next) {
   console.log('[GET] /admin/passports');
   try {
-    const passports = await knex.select('passport_no', 'name', 'surname', 'id', 'email')
-                                  .from('passport')
-                                  .leftJoin('user' ,function() {
-                                    this.on('passport.passport_no', '=', 'user.passport')
+    const passports = await knex.select('passports.id', 'passport_no', 'name', 'surname', 'users.email')
+                                  .from('passports')
+                                  .leftJoin('users' ,function() {
+                                    this.on('passports.id', '=', 'users.passport')
                                   })
     return res.status(200).json({ status: 'SUCCESS', passports })
   } catch(err) {
@@ -42,7 +40,23 @@ async function getPassports(req, res, next) {
   }
 }
 
+// GET ALL USERS
+async function getUsers(req, res, next) {
+  console.log('[GET] /admin/users');
+
+  try {
+      const users = await knex.select('passport', 'email').from('users')
+      if (users.length === 0) return res.status(404).json({ status: 'USERS_NOT_FOUND' })
+
+      return res.status(200).json({ status: 'SUCCESS', users })
+  } catch(err) {
+      console.log('SOMETHING_WENT_WRONG 😢', err);
+      return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+  }
+}
+
 module.exports = {
   resetAll,
-  getPassports
+  getPassports,
+  getUsers,
 }
