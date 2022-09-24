@@ -94,7 +94,7 @@ async function enroll(req, res, next) {
       params.subject_id = `${id[0]}`;
 
       await kairosAxios.post('https://api.kairos.com/enroll', params)
-      return res.status(200).json({ status: 'SUCCESS', passport: params.subject_id })
+      return res.status(200).json({ status: 'SUCCESS', id: params.subject_id, passport: passport_no })
   } catch(err) {
       console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
   }
