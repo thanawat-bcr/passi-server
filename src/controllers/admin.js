@@ -24,11 +24,41 @@ async function resetAll(req, res, next) {
   }
 }
 
+// Revoke Passport
+async function revokePassport(req, res, next) {
+  console.log('[POST] /admin/revoke');
+  const { passport } = req.body;
+
+  if (!(passport)) {
+      console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
+  }
+  try {
+    await kairosAxios.post('https://api.kairos.com/gallery/remove_subject', {
+      gallery_name: process.env.KAIROS_GALLERY_NAME,
+      subject_id: `${passport}`
+    })
+    
+    // PASSPORT_CHECK_OUT
+    var date = new Date(); // Or the date you'd like converted.
+    var isoDateTime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
+    var now = isoDateTime.split('.')[0]
+    await knex('passports').where({ id: passport }).update({ check_out_at: now })
+    
+    // DETACH_USER_PASSPORT
+    await knex('users').where({ passport }).update({ passport: null })
+
+    return res.status(200).json({ status: 'SUCCESS' })
+  } catch(err) {
+    console.log('SOMETHING_WENT_WRONG 😢', err);
+    return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
+  }
+}
+
 // Get Passports
 async function getPassports(req, res, next) {
   console.log('[GET] /admin/passports');
   try {
-    const passports = await knex.select('passports.id', 'passport_no', 'name', 'surname', 'users.email')
+    const passports = await knex.select('passports.id', 'passport_no', 'name', 'surname', 'users.email', 'check_in_at', 'check_out_at')
                                   .from('passports')
                                   .leftJoin('users' ,function() {
                                     this.on('passports.id', '=', 'users.passport')
@@ -57,6 +87,7 @@ async function getUsers(req, res, next) {
 
 module.exports = {
   resetAll,
+  revokePassport,
   getPassports,
   getUsers,
 }

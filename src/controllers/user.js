@@ -109,6 +109,7 @@ async function getQR(req, res, next) {
     try {
         const user = await knex.first('id', 'passport').from('users').where({ id })
         if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
+        if (!user.passport) return res.status(404).json({ status: 'PASSPORT_NOT_FOUND' })
         const timer = Number(process.env.JWT_QR_EXPIRES)
         const token = jwt.sign(
             { id }, process.env.TOKEN_KEY,
