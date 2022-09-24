@@ -10,12 +10,11 @@ kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 
 // Get Subjects
 async function getSubjects(req, res, next) {
-  console.log('[GET] /kairos/gallery');
+  console.log('[GET] /kairos/subject');
   try {
       const result = await kairosAxios.post('https://api.kairos.com/gallery/view', {
           gallery_name: process.env.KAIROS_GALLERY_NAME
       })
-      console.log('SUCCESS 😀');
       return res.status(200).json({ status: 'SUCCESS', passports: result.data.subject_ids })
   } catch(err) {
       console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
@@ -33,7 +32,7 @@ async function verify(req, res, next) {
     var params = {
         image: base64image,
         gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: req.body.passport,
+        subject_id: `${req.body.passport}`,
     };
     try {
         const result = await kairosAxios.post('https://api.kairos.com/verify', params)
@@ -76,9 +75,8 @@ async function enroll(req, res, next) {
       const passports = await knex.select('passport_no').from('passports').whereILike('passport_no', 'PASSI%')
       const passport_id = `0000${passports.length + 1}`
       const passport_no = 'PASSI' + passport_id.substring(passport_id.length - 4) 
-      // console.log(passport_no)
       let today = new Date().toISOString().split('T')[0]
-      await knex('passports').insert({
+      const id =  await knex('passports').insert({
         passport_no,
         name,
         surname,
@@ -93,10 +91,10 @@ async function enroll(req, res, next) {
         date_of_issue: today,
         date_of_expiry: today,
       })
-      params.subject_id = passport_no;
-      
+      params.subject_id = `${id[0]}`;
+
       await kairosAxios.post('https://api.kairos.com/enroll', params)
-      return res.status(200).json({ status: 'SUCCESS', passport: passport_no })
+      return res.status(200).json({ status: 'SUCCESS', passport: params.subject_id })
   } catch(err) {
       console.log('SOMETHING_WENT_WRONG 😢', err); return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' });
   }

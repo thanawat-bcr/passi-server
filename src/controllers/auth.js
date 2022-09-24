@@ -42,7 +42,7 @@ async function checkQR(req, res, next) {
         const isPassportUsed = await knex.first('passport').from('users').where({ passport })
         if (isPassportUsed) return res.status(400).json({ status: 'PASSPORT_ALREADY_USED' })
 
-        const isPassportExist = await knex.first('passport_no').from('passports').where({ passport_no: passport })
+        const isPassportExist = await knex.first('passport_no').from('passports').where({ id: passport })
         if (!isPassportExist) return res.status(400).json({ status: 'PASSPORT_NOT_EXIST' })
 
         return res.status(200).json({ status: 'SUCCESS' })
