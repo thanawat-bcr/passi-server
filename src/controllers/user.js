@@ -102,7 +102,7 @@ async function updatePassword(req, res, next) {
 }
 
 // GET QR
-async function getQR(req, res, next) {
+async function getQR(req, res, next) {ß
     // console.log('[GET] /user/qr');
     const { id } = req.user;
 
@@ -122,10 +122,31 @@ async function getQR(req, res, next) {
     }
 }
 
+// GET PROFILE
+async function getProfile(req, res, next) {
+    // console.log('[GET] /user');
+    const { id } = req.user;
+
+    try {
+        const user = await knex.first('users.email', 'passports.passport_no', 'passports.name', 'passports.surname', 'check_in_at')
+                                .from('users')
+                                .join('passports', { 'passports.id': 'users.passport' })
+                                .where({ 'users.id': id })
+        if (!user) return res.status(404).json({ status: 'USER_NOT_FOUND' })
+        if (!user.passport_no) return res.status(404).json({ status: 'PASSPORT_NOT_FOUND' })
+
+        return res.status(200).json({ status: 'SUCCESS', user })
+    } catch(err) {
+        console.log('SOMETHING_WENT_WRONG 😢', err);
+        return res.status(400).json({ status: 'SOMETHING_WENT_WRONG' })
+    }
+}
+
 module.exports = {
     getPin,
     createPin,
     updatePin,
     updatePassword,
     getQR,
+    getProfile,
 }
