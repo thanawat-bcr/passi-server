@@ -102,7 +102,7 @@ async function updatePassword(req, res, next) {
 }
 
 // GET QR
-async function getQR(req, res, next) {ß
+async function getQR(req, res, next) {
     // console.log('[GET] /user/qr');
     const { id } = req.user;
 
