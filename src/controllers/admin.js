@@ -33,11 +33,6 @@ async function revokePassport(req, res, next) {
       console.log('FIELDS_ARE_REQUIRED 😢'); return res.status(400).json({ status: 'FIELDS_ARE_REQUIRED' });
   }
   try {
-    await kairosAxios.post('https://api.kairos.com/gallery/remove_subject', {
-      gallery_name: process.env.KAIROS_GALLERY_NAME,
-      subject_id: `${passport}`
-    })
-    
     // PASSPORT_CHECK_OUT
     var date = new Date(); // Or the date you'd like converted.
     var isoDateTime = new Date(date.getTime() - (date.getTimezoneOffset() * 60000)).toISOString();
@@ -46,6 +41,12 @@ async function revokePassport(req, res, next) {
     
     // DETACH_USER_PASSPORT
     await knex('users').where({ passport }).update({ passport: null })
+
+    // REMOVE FROM KAIROS
+    await kairosAxios.post('https://api.kairos.com/gallery/remove_subject', {
+      gallery_name: process.env.KAIROS_GALLERY_NAME,
+      subject_id: `${passport}`
+    })
 
     return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {
