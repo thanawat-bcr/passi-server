@@ -39,8 +39,8 @@ async function revokePassport(req, res, next) {
     var now = isoDateTime.split('.')[0]
     await knex('passports').where({ id: passport }).update({ check_out_at: now })
     
-    // DETACH_USER_PASSPORT
-    await knex('users').where({ passport }).update({ passport: null })
+    // DELETE_USER
+    await knex('users').where({ passport }).delete();
 
     // REMOVE FROM KAIROS
     await kairosAxios.post('https://api.kairos.com/gallery/remove_subject', {
