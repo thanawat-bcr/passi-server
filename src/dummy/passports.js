@@ -1,20 +1,5 @@
 const passports = [
   {
-    passport_no: 'AA8298121',
-    name: 'Suphakit',
-    surname: 'Namuangruk',
-    type: 'P',
-    country_code: 'THA',
-    nationality: 'THAI',
-    date_of_birth: '2000-07-06',
-    place_of_birth: 'Bangkok',
-    identification_no: '1509966067390',
-    sex: 'M',
-    height: '1.79',
-    date_of_issue: '2017-06-06',
-    date_of_expiry: '2023-06-05',
-  },
-  {
     passport_no: 'AB1325944',
     name: 'Thanawat',
     surname: 'Benjachatriroj',
@@ -29,6 +14,36 @@ const passports = [
     date_of_issue: '2018-03-16',
     date_of_expiry: '2023-03-15',
   },
+  {
+    passport_no: 'AC2728432',
+    name: 'Teerapat',
+    surname: 'Mongkolchaichana',
+    type: 'P',
+    country_code: 'THA',
+    nationality: 'THAI',
+    date_of_birth: '2001-02-13',
+    place_of_birth: 'BANGKOK',
+    identification_no: '1104100010840',
+    sex: 'M',
+    height: '1.72',
+    date_of_issue: '2021-10-07',
+    date_of_expiry: '2026-10-06',
+  },
+  {
+    passport_no: 'AA8298121',
+    name: 'Suphakit',
+    surname: 'Namuangruk',
+    type: 'P',
+    country_code: 'THA',
+    nationality: 'THAI',
+    date_of_birth: '2000-07-06',
+    place_of_birth: 'BANGKOK',
+    identification_no: '1509966067390',
+    sex: 'M',
+    height: '1.79',
+    date_of_issue: '2017-06-06',
+    date_of_expiry: '2023-06-05',
+  }
 ]
 
 module.exports = passports

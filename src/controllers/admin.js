@@ -4,6 +4,8 @@ const knex = require("../services/db");
 
 const kairosAxios = require('axios');
 
+const PASSPORTS = require('../dummy/passports')
+
 kairosAxios.defaults.headers.common['app_id'] = process.env.KAIROS_APP_ID
 kairosAxios.defaults.headers.common['app_key'] = process.env.KAIROS_APP_KEY
 kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
@@ -11,12 +13,44 @@ kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 // Reset All
 async function resetAll(req, res, next) {
   console.log('[POST] /admin/reset');
+  // console.log('image', req.files.tutor.path)
+  // console.log('image', req.files.james.path)
+  // console.log('image', req.files.fluke.path)
   try {
-    await kairosAxios.post('https://api.kairos.com/gallery/remove', {
-      gallery_name: process.env.KAIROS_GALLERY_NAME,
+    // Clear Kairos
+    await kairosAxios.post('https://api.kairos.com/gallery/remove', { gallery_name: process.env.KAIROS_GALLERY_NAME })
+
+    // Enroll Admin Face
+    const admins = [
+      {
+        image: fs.readFileSync(req.files.tutor.path, 'base64'),
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: "AB1325944",
+      },
+      {
+        image: fs.readFileSync(req.files.fluke.path, 'base64'),
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: "AA8298121",
+      },
+      {
+        image: fs.readFileSync(req.files.james.path, 'base64'),
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: "AC2728432",
+      },
+    ];
+    admins.forEach(async (admin) => {
+      console.log(admin.subject_id)
+      await kairosAxios.post('https://api.kairos.com/enroll', admin)
     })
+
+    // Clear Database
     await knex('users').delete()
     await knex('passports').delete()
+
+    // Enroll Admin Passport
+    PASSPORTS.forEach(async (passport) => {
+      await knex('passports').insert(passport)
+    })
     return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {
     console.log('SOMETHING_WENT_WRONG 😢', err);

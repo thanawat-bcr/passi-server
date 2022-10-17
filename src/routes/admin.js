@@ -3,9 +3,12 @@ const router = express.Router();
 
 const admin = require('../controllers/admin')
 
+const multipart = require('connect-multiparty');
+const multipartMiddleware = multipart();
+
 router.get('/passports', admin.getPassports);
 router.get('/users', admin.getUsers);
-router.post('/reset', admin.resetAll);
+router.post('/reset', multipartMiddleware, admin.resetAll);
 router.post('/revoke', admin.revokePassport);
 
 module.exports = router
