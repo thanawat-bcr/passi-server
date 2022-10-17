@@ -17,36 +17,33 @@ async function resetAll(req, res, next) {
     // Clear Kairos
     await kairosAxios.post('https://api.kairos.com/gallery/remove', { gallery_name: process.env.KAIROS_GALLERY_NAME })
 
-    // Enroll Admin Face
-    const admins = [
-      {
-        image: fs.readFileSync(req.files.tutor.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: "AB1325944",
-      },
-      {
-        image: fs.readFileSync(req.files.fluke.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: "AA8298121",
-      },
-      {
-        image: fs.readFileSync(req.files.james.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: "AC2728432",
-      },
-    ];
-    admins.forEach(async (admin) => {
-      console.log(admin.subject_id)
-      await kairosAxios.post('https://api.kairos.com/enroll', admin)
-    })
-
     // Clear Database
     await knex('users').delete()
     await knex('passports').delete()
 
-    // Enroll Admin Passport
+    // // Enroll Admin Passport
     PASSPORTS.forEach(async (passport) => {
-      await knex('passports').insert(passport)
+      const id = await knex('passports').insert({
+        passport_no: passport.passport_no,
+        name: passport.name,
+        surname: passport.surname,
+        type: passport.type,
+        country_code: passport.country_code,
+        nationality: passport.nationality,
+        date_of_birth: passport.date_of_birth,
+        place_of_birth: passport.place_of_birth,
+        identification_no: passport.identification_no,
+        sex: passport.sex,
+        height: passport.height,
+        date_of_issue: passport.date_of_issue,
+        date_of_expiry: passport.date_of_expiry,
+      })
+      const params = {
+        image: fs.readFileSync(req.files[passport.image].path, 'base64'),
+        gallery_name: process.env.KAIROS_GALLERY_NAME,
+        subject_id: `${id[0]}`,
+      }
+      await kairosAxios.post('https://api.kairos.com/enroll', params)
     })
     return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {

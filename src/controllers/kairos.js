@@ -39,10 +39,10 @@ async function verify(req, res, next) {
         // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
         const status = result.data.images[0].transaction.confidence > 0.6
         if(status) {
-            console.log('FACE VERIFIED SUCCESS 😉');
+            console.log('FACE VERIFIED SUCCESS 😉', result.data.images[0].transaction.confidence);
             return res.status(200).json({status: `SUCCESS`, data: result.data.images[0].transaction.confidence });
         } else {
-            console.log('FACE VERIFIED FAILED 🥲');
+            console.log('FACE VERIFIED FAILED 🥲', result.data.images[0].transaction.confidence);
             return res.status(400).json({ status: `FAILED`, data: result.data.images[0].transaction.confidence })
         }
     } catch(err) {

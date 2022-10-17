@@ -1,5 +1,6 @@
 const passports = [
   {
+    image: 'tutor',
     passport_no: 'AB1325944',
     name: 'Thanawat',
     surname: 'Benjachatriroj',
@@ -15,6 +16,7 @@ const passports = [
     date_of_expiry: '2023-03-15',
   },
   {
+    image: 'james',
     passport_no: 'AC2728432',
     name: 'Teerapat',
     surname: 'Mongkolchaichana',
@@ -30,6 +32,7 @@ const passports = [
     date_of_expiry: '2026-10-06',
   },
   {
+    image: 'fluke',
     passport_no: 'AA8298121',
     name: 'Suphakit',
     surname: 'Namuangruk',
