@@ -13,9 +13,6 @@ kairosAxios.defaults.headers.common['Content-Type'] = 'application/json'
 // Reset All
 async function resetAll(req, res, next) {
   console.log('[POST] /admin/reset');
-  // console.log('image', req.files.tutor.path)
-  // console.log('image', req.files.james.path)
-  // console.log('image', req.files.fluke.path)
   try {
     // Clear Kairos
     await kairosAxios.post('https://api.kairos.com/gallery/remove', { gallery_name: process.env.KAIROS_GALLERY_NAME })
