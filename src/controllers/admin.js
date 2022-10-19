@@ -21,51 +21,27 @@ async function resetAll(req, res, next) {
     await knex('users').delete()
     await knex('passports').whereNotIn('id', [93, 94, 95]).delete()
 
-      let params = {
-        image: fs.readFileSync(req.files.tutor.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: '93',
-      }
-      await kairosAxios.post('https://api.kairos.com/enroll', params)
-      
-      params = {
-        image: fs.readFileSync(req.files.james.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: '94',
-      }
-      await kairosAxios.post('https://api.kairos.com/enroll', params)
-      
-      params = {
-        image: fs.readFileSync(req.files.fluke.path, 'base64'),
-        gallery_name: process.env.KAIROS_GALLERY_NAME,
-        subject_id: '95',
-      }
-      await kairosAxios.post('https://api.kairos.com/enroll', params)
+    let params = {
+      image: fs.readFileSync('src/faces/admin/tutor.jpeg', 'base64'),
+      gallery_name: process.env.KAIROS_GALLERY_NAME,
+      subject_id: '93',
+    }
+    await kairosAxios.post('https://api.kairos.com/enroll', params)
+    
+    params = {
+      image: fs.readFileSync('src/faces/admin/james.jpeg', 'base64'),
+      gallery_name: process.env.KAIROS_GALLERY_NAME,
+      subject_id: '94',
+    }
+    await kairosAxios.post('https://api.kairos.com/enroll', params)
+    
+    params = {
+      image: fs.readFileSync('src/faces/admin/fluke.jpeg', 'base64'),
+      gallery_name: process.env.KAIROS_GALLERY_NAME,
+      subject_id: '95',
+    }
+    await kairosAxios.post('https://api.kairos.com/enroll', params)
 
-    // // Enroll Admin Passport
-    // PASSPORTS.forEach(async (passport) => {
-    //   const id = await knex('passports').insert({
-    //     passport_no: passport.passport_no,
-    //     name: passport.name,
-    //     surname: passport.surname,
-    //     type: passport.type,
-    //     country_code: passport.country_code,
-    //     nationality: passport.nationality,
-    //     date_of_birth: passport.date_of_birth,
-    //     place_of_birth: passport.place_of_birth,
-    //     identification_no: passport.identification_no,
-    //     sex: passport.sex,
-    //     height: passport.height,
-    //     date_of_issue: passport.date_of_issue,
-    //     date_of_expiry: passport.date_of_expiry,
-    //   })
-    //   const params = {
-    //     image: fs.readFileSync(req.files[passport.image].path, 'base64'),
-    //     gallery_name: process.env.KAIROS_GALLERY_NAME,
-    //     subject_id: `${id[0]}`,
-    //   }
-    //   await kairosAxios.post('https://api.kairos.com/enroll', params)
-    // })
     return res.status(200).json({ status: 'SUCCESS' })
   } catch(err) {
     console.log('SOMETHING_WENT_WRONG 😢', err);
