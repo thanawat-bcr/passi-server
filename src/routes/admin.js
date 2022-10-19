@@ -10,5 +10,6 @@ router.get('/passports', admin.getPassports);
 router.get('/users', admin.getUsers);
 router.post('/reset', multipartMiddleware, admin.resetAll);
 router.post('/revoke', admin.revokePassport);
+router.post('/confusion', admin.getConfusion);
 
 module.exports = router
