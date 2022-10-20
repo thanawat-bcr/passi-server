@@ -37,7 +37,7 @@ async function verify(req, res, next) {
     try {
         const result = await kairosAxios.post('https://api.kairos.com/verify', params)
         // CHECK AT CONFIDENCE MUST BE GREATER THAN 60%
-        const status = result.data.images[0].transaction.confidence > 0.6
+        const status = result.data.images[0].transaction.confidence > 0.7
         if(status) {
             console.log('FACE VERIFIED SUCCESS 😉', result.data.images[0].transaction.confidence);
             return res.status(200).json({status: `SUCCESS`, data: result.data.images[0].transaction.confidence });
