@@ -12,8 +12,8 @@ Tourist must enter their `6-Digits PIN` to confirm their identity
 
 ```json
 {
-    "token": "[Token from qr verification return response]",
-    "pin": "[Tourist's PIN]"
+  "token": "[Token from qr verification return response]",
+  "pin": "[Tourist's PIN]"
 }
 ```
 
@@ -21,7 +21,7 @@ Tourist must enter their `6-Digits PIN` to confirm their identity
 
 ```json
 {
-	"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDQsImlhdCI6MTY2NzAzOTQ0MCwiZXhwIjoxNjY3MDM5NTAwfQ.nvjQ8weoXtS8duzHCBh8KTccBInmtbwmuZhwPC7tfnE",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDQsImlhdCI6MTY2NzAzOTQ0MCwiZXhwIjoxNjY3MDM5NTAwfQ.nvjQ8weoXtS8duzHCBh8KTccBInmtbwmuZhwPC7tfnE",
   "pin": "123456"
 }
 ```
@@ -36,12 +36,12 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-	"status": "SUCCESS",
-	"user": {
-		"passport": "PASSI0001",
-		"name": "Firstname Surname",
-		"dob": "Jan 01 1970"
-	}
+  "status": "SUCCESS",
+  "user": {
+    "passport": "PASSI0001",
+    "name": "Firstname Surname",
+    "dob": "Jan 01 1970"
+  }
 }
 ```
 
@@ -55,7 +55,7 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-    "status": "FIELDS_ARE_REQUIRED"
+  "status": "FIELDS_ARE_REQUIRED"
 }
 ```
 
@@ -67,7 +67,7 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-    "status": "USER_NOT_FOUND"
+  "status": "USER_NOT_FOUND"
 }
 ```
 
@@ -79,7 +79,7 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-    "status": "PIN_NOT_MATCHED"
+  "status": "PIN_NOT_MATCHED"
 }
 ```
 
@@ -91,6 +91,6 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-    "status": "SOMETHING_WENT_WRONG"
+  "status": "SOMETHING_WENT_WRONG"
 }
 ```

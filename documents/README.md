@@ -1,6 +1,6 @@
 # Passi Business API Docs
 
-Courrntly, our API is an open endpoints which require no Authentication.
+Currntly, our API is an open endpoints which require no Authentication.
 To complete the verification process, you need to do a `QR Code verification` and followed by any of `Two-Factor Authentication`
 
 ## Endpoints for QR Code verification
