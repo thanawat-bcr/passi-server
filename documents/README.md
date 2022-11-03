@@ -1,18 +1,22 @@
 # Passi Business API Docs
 
-Currntly, our API is an open endpoints which require no Authentication.
-To complete the verification process, you need to do a `QR Code verification` and followed by any of `Two-Factor Authentication`
+Currently, our API is an open endpoints which require no Authentication.
+To complete the verification process, 
+1. you need to do a `QR verification` to get `TOKEN` for next verification step
+2. followed by any of `Two-Factor Authentication`, which we provided boths of `PIN` and `FACE`
 
 ## Endpoints for QR Code verification
 
-Businesses can scan the tourist's QR Code inside `Passi tourist application`, and get their QR token to verify in this API endpoint as a first step.
+You need to complete this `QR Verification` before going to `Two-Factor Authentication` step.
 
 * [Verify QR](verify/qr.md) : `POST /verify/qr/`
+
+You will get `TOKEN` after verification success for next step verification.
 
 ## Endpoints for Two-Factor Authentication
 
 There are 2 endpoints available here, you can choose either one.
-This `Two-Factor Authentication` endpoints are required return `token` from `QR Code verification` in previous step.
+These endpoints are required return `TOKEN` from `QR Code verification` in previous step.
 
-* [Show info](user/get.md) : `GET /api/user/`
-* [Update info](user/put.md) : `PUT /api/user/`
+* [Verify PIN](verify/pin.md) : `POST /verify/pin/`
+* [Verify Face](verify/face.md) : `POST /verify/face/`

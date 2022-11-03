@@ -65,7 +65,7 @@ async function verifyFace(req, res, next) {
     console.log('[POST] /verify/face');
 
     if (!req.body.token) {
-        return res.status(403).send("A token is required for authentication");
+        return res.status(403).send("TOKEN_IS_REQUIRED");
     }
     if(!req.files.image?.path) {
         console.log('IMAGE_NOT_FOUND 😉');
@@ -76,7 +76,7 @@ async function verifyFace(req, res, next) {
         const decoded = jwt.verify(req.body.token, config.TOKEN_KEY);
         req.user = decoded;
     } catch (err) {
-        return res.status(401).send("Invalid Token");
+        return res.status(401).send("TOKEN_IS_INVALID");
     }
     const { id } = req.user;
 

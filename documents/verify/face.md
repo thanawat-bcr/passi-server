@@ -1,8 +1,8 @@
-# Pin: Two-Factor Authentication
+# Face: Two-Factor Authentication
 
-Tourist must enter their `6-Digits PIN` along with `token` from `QR Verification API` to confirm their identity
+Tourist must do `Face Verification` along with `token` from `QR Verification API` to confirm their identity
 
-**URL** : `/verify/pin/`
+**URL** : `/verify/face/`
 
 **Method** : `POST`
 
@@ -10,10 +10,12 @@ Tourist must enter their `6-Digits PIN` along with `token` from `QR Verification
 
 **Data constraints**
 
+
+***Make sure you send in `Form Data / Multipart`***
 ```json
 {
   "token": "[Token from qr verification return response]",
-  "pin": "[Tourist's PIN]"
+  "image": "[Tourist's face image]"
 }
 ```
 
@@ -22,7 +24,7 @@ Tourist must enter their `6-Digits PIN` along with `token` from `QR Verification
 ```json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NDQsImlhdCI6MTY2NzAzOTQ0MCwiZXhwIjoxNjY3MDM5NTAwfQ.nvjQ8weoXtS8duzHCBh8KTccBInmtbwmuZhwPC7tfnE",
-  "pin": "123456"
+  "image": "[Tourist's face image]"
 }
 ```
 
@@ -40,7 +42,8 @@ The verification process is completed, API will return some of tourist's passpor
   "user": {
     "passport": "PASSI0001",
     "name": "Firstname Surname",
-    "dob": "Jan 01 1970"
+    "dob": "Jan 01 1970",
+    "similarity": 0.89
   }
 }
 ```
@@ -95,7 +98,7 @@ The verification process is completed, API will return some of tourist's passpor
 }
 ```
 
-**Condition** : If PIN is not matched
+**Condition** : If Face is not matched
 
 **Code** : `400 bad Request`
 
@@ -103,7 +106,7 @@ The verification process is completed, API will return some of tourist's passpor
 
 ```json
 {
-  "status": "PIN_NOT_MATCHED"
+  "status": "FACE_NOT_MATCHED"
 }
 ```
 
